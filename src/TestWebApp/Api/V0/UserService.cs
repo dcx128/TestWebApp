@@ -1,4 +1,5 @@
-﻿using System.DirectoryServices.Protocols;
+﻿using System.ComponentModel.DataAnnotations;
+using System.DirectoryServices.Protocols;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,7 @@ namespace TestWebApp.Api.V0
         [HttpPost]
         [Route("checkin")]
         public async Task<IActionResult> CheckinAsync(
-            [FromHeader] string userName,
+            [FromHeader][RegularExpression("[a-zA-Z0-9]+")] string userName,
             [FromHeader] string password,
             CancellationToken cancellationToken)
         {
@@ -45,9 +46,9 @@ namespace TestWebApp.Api.V0
                 var user = new User
                 {
                     UserName = userName,
-                    PassHash = hashService.GetHash($"{userName}:{password}"),
+                    PassHash = GeneratePassHash(userName, password),
                 };
-                user.Session = hashService.GetHash($"{user.PassHash}+{DateTime.UtcNow}");
+                user.Session = GenerateSession(user.PassHash);
                 context.Users.Add(user);
 
                 if (await context.SaveChangesAsync(cancellationToken) > 0)
@@ -94,12 +95,12 @@ namespace TestWebApp.Api.V0
                     return NotFound(response.ToJson());
                 }
 
-                if (!string.Equals(user.PassHash, hashService.GetHash($"{userName}:{password}"), StringComparison.Ordinal))
+                if (!string.Equals(user.PassHash, GeneratePassHash(userName, password), StringComparison.Ordinal))
                 {
                     return Forbid(response.ToJson());
                 }
 
-                user.Session = hashService.GetHash($"{user.PassHash}+{DateTime.UtcNow}");
+                user.Session = GenerateSession(user.PassHash);
                 if (await context.SaveChangesAsync(cancellationToken) > 0)
                 {
                     response.Session = user.Session;
@@ -239,5 +240,8 @@ namespace TestWebApp.Api.V0
                 return Problem(statusCode: (int)HttpStatusCode.InternalServerError);
             }
         }
+
+        private string GeneratePassHash(string userName, string password) => hashService.GetHash($"{userName}:{password}");
+        private string GenerateSession(string passHash) => hashService.GetHash($"{passHash}+{DateTime.UtcNow}");
     }
 }
