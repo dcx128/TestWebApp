@@ -168,6 +168,7 @@ namespace TestWebApp.Api.V0
         [Route("logout")]
         public async Task<IActionResult> LogoutAsync(
             [FromHeader] string userName,
+            [FromHeader] string session,
             CancellationToken cancellationToken)
         {
             var response = new Response { UserName = userName };
@@ -183,6 +184,11 @@ namespace TestWebApp.Api.V0
                 if (user == null)
                 {
                     return NotFound(response.ToJson());
+                }
+
+                if (!string.Equals(user.Session, session, StringComparison.Ordinal))
+                {
+                    return Forbid(response.ToJson());
                 }
 
                 user.Session = string.Empty;
