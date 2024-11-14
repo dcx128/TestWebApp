@@ -1,4 +1,6 @@
-﻿using TestWebApp.Model;
+﻿using System.Reflection;
+using Microsoft.Extensions.Primitives;
+using TestWebApp.Model;
 using TestWebApp.Services;
 using TestWebApp.Settings;
 
@@ -8,11 +10,18 @@ namespace TestWebApp
     {
         public static WebApplicationBuilder Configure(this WebApplicationBuilder builder)
         {
-            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            builder.Configuration
+                .SetBasePath(Directory.GetParent(Assembly.GetExecutingAssembly().Location)!.FullName)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
             builder.Host.ConfigureServices((context, services) =>
             {
-                services.AddSingleton<IProductSettings>(_ =>
+                services.AddSingleton<IProductSettings>(provider =>
                 {
+                    ChangeToken.OnChange(
+                        () => context.Configuration.GetReloadToken(),
+                        () => context.Configuration.Bind(provider.GetRequiredService<IProductSettings>()));
+
                     var productSettings = new ProductSettings();
                     context.Configuration.Bind(productSettings);
                     return productSettings;
