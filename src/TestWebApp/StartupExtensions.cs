@@ -28,6 +28,7 @@ namespace TestWebApp
                 });
 
                 services.AddSingleton<IHashService, HashService>();
+                services.AddSingleton<ILdapService, LdapService>();
 
                 services.AddDbContextFactory<AppDbContext>(lifetime: ServiceLifetime.Singleton);
             });

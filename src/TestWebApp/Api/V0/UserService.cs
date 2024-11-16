@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.DirectoryServices.Protocols;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using TestWebApp.Extensions;
 using TestWebApp.Model;
 using TestWebApp.Model.Types;
 using TestWebApp.Services;
-using TestWebApp.Settings;
 
 namespace TestWebApp.Api.V0
 {
@@ -18,7 +16,7 @@ namespace TestWebApp.Api.V0
         ILogger<UserService> logger,
         IDbContextFactory<AppDbContext> contextFactory,
         IHashService hashService,
-        IProductSettings productSettings)
+        ILdapService ldapService)
         : ControllerBase
     {
         [HttpPost]
@@ -215,9 +213,10 @@ namespace TestWebApp.Api.V0
 
         [HttpPost]
         [Route("login/ldap")]
-        public IActionResult LoginLdap(
+        public async Task<IActionResult> LoginLdapAsync(
             [FromHeader] string userName,
-            [FromHeader] string password)
+            [FromHeader] string password,
+            CancellationToken cancellationToken)
         {
             var response = new Response { UserName = userName };
             if (string.IsNullOrWhiteSpace(userName) ||
@@ -228,21 +227,13 @@ namespace TestWebApp.Api.V0
 
             try
             {
-                var id = new LdapDirectoryIdentifier(productSettings.ADSettings.Host, productSettings.ADSettings.Port);
-                using var connection = new LdapConnection(id);
-                connection.AuthType = productSettings.ADSettings.AuthType;
-                connection.SessionOptions.ProtocolVersion = productSettings.ADSettings.ProtocolVersion;
-                var credentials = new NetworkCredential(userName, password);
-                connection.Bind(credentials);
-                return Ok(response.ToJson());
-            }
-            catch (LdapException)
-            {
-                return Forbid(response.ToJson());
+                return await ldapService.LoginAsync(userName, password, cancellationToken)
+                    ? Ok(response.ToJson())
+                    : Forbid(response.ToJson());
             }
             catch (Exception ex)
             {
-                logger.LogError($"{nameof(LoginLdap)} error, {nameof(userName)}: '{userName}', ex: '{ex.Message}'");
+                logger.LogError($"{nameof(LoginLdapAsync)} error, {nameof(userName)}: '{userName}', ex: '{ex.Message}'");
                 return Problem(statusCode: (int)HttpStatusCode.InternalServerError);
             }
         }
