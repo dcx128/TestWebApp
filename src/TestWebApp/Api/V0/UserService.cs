@@ -95,7 +95,7 @@ namespace TestWebApp.Api.V0
 
                 if (!string.Equals(user.PassHash, GeneratePassHash(userName, password), StringComparison.Ordinal))
                 {
-                    return Forbid(response.ToJson());
+                    return Forbid();
                 }
 
                 user.Session = GenerateSession(user.PassHash);
@@ -140,12 +140,12 @@ namespace TestWebApp.Api.V0
                 var user = await context.Users.FirstOrDefaultAsync(u => u.UserName == userName, cancellationToken);
                 if (user == null)
                 {
-                    return Forbid(response.ToJson());
+                    return Forbid();
                 }
 
                 if (!string.Equals(user.Session, session, StringComparison.Ordinal))
                 {
-                    return Forbid(response.ToJson());
+                    return Forbid();
                 }
 
                 response.Session = session;
@@ -153,7 +153,7 @@ namespace TestWebApp.Api.V0
             }
             catch (OperationCanceledException)
             {
-                return Forbid(response.ToJson());
+                return Forbid();
             }
             catch (Exception ex)
             {
@@ -186,7 +186,7 @@ namespace TestWebApp.Api.V0
 
                 if (!string.Equals(user.Session, session, StringComparison.Ordinal))
                 {
-                    return Forbid(response.ToJson());
+                    return Forbid();
                 }
 
                 user.Session = string.Empty;
@@ -229,7 +229,7 @@ namespace TestWebApp.Api.V0
             {
                 return await ldapService.LoginAsync(userName, password, cancellationToken)
                     ? Ok(response.ToJson())
-                    : Forbid(response.ToJson());
+                    : Forbid();
             }
             catch (Exception ex)
             {
