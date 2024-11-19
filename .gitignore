@@ -6,3 +6,5 @@
 /src/TestWebApp/bin
 /src/TestWebApp/obj
 *.user
+/tests/TestWebAppTests/bin
+/tests/TestWebAppTests/obj
