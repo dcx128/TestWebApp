@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
+using Npgsql;
 using TestWebApp.Model;
 using TestWebApp.Services;
 using TestWebApp.Settings;
@@ -30,7 +32,11 @@ namespace TestWebApp
                 services.AddSingleton<IHashService, HashService>();
                 services.AddSingleton<ILdapService, LdapService>();
 
-                services.AddDbContextFactory<AppDbContext>(lifetime: ServiceLifetime.Singleton);
+                services.AddDbContextFactory<AppDbContext>(lifetime: ServiceLifetime.Singleton, optionsAction: (provider, optionsBuilder) =>
+                {
+                    var dataSourceBuilder = new NpgsqlDataSourceBuilder(provider.GetRequiredService<IProductSettings>().DbConnectionString);
+                    optionsBuilder.UseNpgsql(dataSourceBuilder.Build());
+                });
             });
 
             return builder;
