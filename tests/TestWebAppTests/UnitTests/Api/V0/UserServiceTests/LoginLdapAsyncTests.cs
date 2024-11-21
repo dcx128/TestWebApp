@@ -10,16 +10,16 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         [TestCase("", "   ")]
         [TestCase("   ", "")]
         [TestCase("   ", "   ")]
-        public void UserNameOrPasswordIsNullOrWhiteSpace_ReturnsBadRequest(string userName, string password)
+        public async Task UserNameOrPasswordIsNullOrWhiteSpace_ReturnsBadRequest(string userName, string password)
         {
             // Arrange
             var sut = CreateSut();
             var expected = sut.BadRequest();
 
             // Act
-            var task = sut.LoginLdapAsync(userName, password, CancellationToken.None);
+            var task = sut.LoginLdapAsync(userName, password, default);
             var taskComplete = task.Wait(callTimeout);
-            var actual = task.GetAwaiter().GetResult();
+            var actual = await task;
 
             // Assert
             taskComplete.Should().BeTrue($"{nameof(sut.LoginLdapAsync)} must not hang");
@@ -27,16 +27,16 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         }
 
         [Test]
-        public void AnErrorOccurred_ReturnsInternalServerError()
+        public async Task AnErrorOccurred_ReturnsInternalServerError()
         {
             // Arrange
-            var sut = CreateSut(ldapService: mf.FaultedLdapService());
+            var sut = CreateSut(ldapService: mf.LdapService().WithFailLoginAsync());
             var expected = sut.Problem(statusCode: (int)HttpStatusCode.InternalServerError);
 
             // Act
-            var task = sut.LoginLdapAsync(testUserName, testUserPass, CancellationToken.None);
+            var task = sut.LoginLdapAsync(testUserName, testUserPass, default);
             var taskComplete = task.Wait(callTimeout);
-            var actual = task.GetAwaiter().GetResult();
+            var actual = await task;
 
             // Assert
             taskComplete.Should().BeTrue($"{nameof(sut.LoginLdapAsync)} must not hang");
@@ -44,16 +44,16 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         }
 
         [Test]
-        public void LoginFailed_ReturnsForbid()
+        public async Task LoginFailed_ReturnsForbid()
         {
             // Arrange
-            var sut = CreateSut(ldapService: mf.LdapService(loginResult: false));
+            var sut = CreateSut(ldapService: mf.LdapService().WithLoginAsyncReturns(false));
             var expected = sut.Forbid();
 
             // Act
-            var task = sut.LoginLdapAsync(testUserName, testUserPass, CancellationToken.None);
+            var task = sut.LoginLdapAsync(testUserName, testUserPass, default);
             var taskComplete = task.Wait(callTimeout);
-            var actual = task.GetAwaiter().GetResult();
+            var actual = await task;
 
             // Assert
             taskComplete.Should().BeTrue($"{nameof(sut.LoginLdapAsync)} must not hang");
@@ -61,16 +61,16 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         }
 
         [Test]
-        public void LoginSuccessful_ReturnsOk()
+        public async Task LoginSuccessful_ReturnsOk()
         {
             // Arrange
-            var sut = CreateSut(ldapService: mf.LdapService(loginResult: true));
+            var sut = CreateSut(ldapService: mf.LdapService().WithLoginAsyncReturns(true));
             var expected = sut.Ok();
 
             // Act
-            var task = sut.LoginLdapAsync(testUserName, testUserPass, CancellationToken.None);
+            var task = sut.LoginLdapAsync(testUserName, testUserPass, default);
             var taskComplete = task.Wait(callTimeout);
-            var actual = task.GetAwaiter().GetResult();
+            var actual = await task;
 
             // Assert
             taskComplete.Should().BeTrue($"{nameof(sut.LoginLdapAsync)} must not hang");
