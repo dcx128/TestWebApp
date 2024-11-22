@@ -30,7 +30,8 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         public async Task AnErrorOccurred_ReturnsInternalServerError()
         {
             // Arrange
-            var sut = CreateSut(ldapService: mf.LdapService().WithFailLoginAsync());
+            var sut = CreateSut(ldapService: mf.LdapService()
+                .WithFailLoginAsync());
             var expected = sut.Problem(statusCode: (int)HttpStatusCode.InternalServerError);
 
             // Act
@@ -47,7 +48,8 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         public async Task LoginFailed_ReturnsForbid()
         {
             // Arrange
-            var sut = CreateSut(ldapService: mf.LdapService().WithLoginAsyncReturns(false));
+            var sut = CreateSut(ldapService: mf.LdapService()
+                .WithLoginAsyncReturns(false));
             var expected = sut.Forbid();
 
             // Act
@@ -64,7 +66,8 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         public async Task LoginSuccessful_ReturnsOk()
         {
             // Arrange
-            var sut = CreateSut(ldapService: mf.LdapService().WithLoginAsyncReturns(true));
+            var sut = CreateSut(ldapService: mf.LdapService()
+                .WithLoginAsyncReturns(true));
             var expected = sut.Ok();
 
             // Act

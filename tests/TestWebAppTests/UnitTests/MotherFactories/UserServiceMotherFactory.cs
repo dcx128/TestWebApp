@@ -13,15 +13,15 @@ namespace TestWebAppTests.UnitTests.MotherFactories
         public static UserService UserService(this MotherFactory _,
             ILogger<UserService>? logger = null,
             IDbContextFactory<AppDbContext>? contextFactory = null,
-            IHashService? hashService = null,
+            IHashGenerator? hashGenerator = null,
             ILdapService? ldapService = null)
         {
             logger ??= Mock.Of<ILogger<UserService>>();
             contextFactory ??= Mock.Of<IDbContextFactory<AppDbContext>>();
-            hashService ??= Mock.Of<IHashService>();
+            hashGenerator ??= Mock.Of<IHashGenerator>();
             ldapService ??= Mock.Of<ILdapService>();
 
-            return new UserService(logger, contextFactory, hashService, ldapService);
+            return new UserService(logger, contextFactory, hashGenerator, ldapService);
         }
     }
 }

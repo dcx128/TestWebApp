@@ -15,7 +15,7 @@ namespace TestWebApp.Api.V0
     public class UserService(
         ILogger<UserService> logger,
         IDbContextFactory<AppDbContext> contextFactory,
-        IHashService hashService,
+        IHashGenerator hashGenerator,
         ILdapService ldapService)
         : ControllerBase
     {
@@ -44,10 +44,10 @@ namespace TestWebApp.Api.V0
                 var user = new User
                 {
                     UserName = userName,
-                    PassHash = GeneratePassHash(userName, password),
+                    PassHash = hashGenerator.GeneratePassHash(userName, password),
                 };
-                user.Session = GenerateSession(user.PassHash);
-                context.Users.Add(user);
+                user.Session = hashGenerator.GenerateSession(user.PassHash);
+                await context.Users.AddAsync(user, cancellationToken);
 
                 if (await context.SaveChangesAsync(cancellationToken) > 0)
                 {
@@ -93,12 +93,12 @@ namespace TestWebApp.Api.V0
                     return NotFound(response.ToJson());
                 }
 
-                if (!string.Equals(user.PassHash, GeneratePassHash(userName, password), StringComparison.Ordinal))
+                if (!string.Equals(user.PassHash, hashGenerator.GeneratePassHash(userName, password), StringComparison.Ordinal))
                 {
                     return Forbid();
                 }
 
-                user.Session = GenerateSession(user.PassHash);
+                user.Session = hashGenerator.GenerateSession(user.PassHash);
                 if (await context.SaveChangesAsync(cancellationToken) > 0)
                 {
                     response.Session = user.Session;
@@ -237,8 +237,5 @@ namespace TestWebApp.Api.V0
                 return Problem(statusCode: (int)HttpStatusCode.InternalServerError);
             }
         }
-
-        private string GeneratePassHash(string userName, string password) => hashService.GetHash($"{userName}:{password}");
-        private string GenerateSession(string passHash) => hashService.GetHash($"{passHash}+{DateTime.UtcNow}");
     }
 }

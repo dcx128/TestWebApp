@@ -30,7 +30,8 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         public async Task AnErrorOccurred_ReturnsInternalServerError()
         {
             // Arrange
-            var sut = CreateSut(contextFactory: mf.DbContextFactory().WithFailCreateDbContextAsync());
+            var sut = CreateSut(contextFactory: mf.DbContextFactory()
+                .WithFailCreateDbContextAsync());
             var expected = sut.Problem(statusCode: (int)HttpStatusCode.InternalServerError);
 
             // Act
@@ -48,7 +49,8 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         {
             // Arrange
             var tokenSource = new CancellationTokenSource();
-            var sut = CreateSut(contextFactory: mf.DbContextFactory().WithThrowIfCancellationRequested(tokenSource.Token));
+            var sut = CreateSut(contextFactory: mf.DbContextFactory()
+                .WithThrowIfCancellationRequested(tokenSource.Token));
             var expected = sut.NoContent();
 
             // Act
@@ -66,7 +68,8 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         public async Task UserNotExists_ReturnsNotFound()
         {
             // Arrange
-            var sut = CreateSut(contextFactory: mf.DbContextFactory().WithUsers(noUsers));
+            var sut = CreateSut(contextFactory: mf.DbContextFactory()
+                .WithNoUsers());
             var expected = sut.NotFound();
 
             // Act
@@ -80,12 +83,12 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         }
 
         [Test]
-        [Ignore("TODO")]
         public async Task SessionNotEqual_ReturnsForbid()
         {
             // Arrange
             const string wrongSession = $"{testSession}+0";
-            var sut = CreateSut(contextFactory: mf.DbContextFactory().WithUsers(testUser));
+            var sut = CreateSut(contextFactory: mf.DbContextFactory()
+                .WithUsers(testUser));
             var expected = sut.Forbid();
 
             // Act
@@ -99,11 +102,11 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         }
 
         [Test]
-        [Ignore("TODO")]
         public async Task LogoutFailed_ReturnsBadRequest()
         {
             // Arrange
-            var sut = CreateSut(contextFactory: mf.DbContextFactory().WithUsers(testUser).WithSaveChangesAsyncReturns(0));
+            var sut = CreateSut(contextFactory: mf.DbContextFactory()
+                .WithUsers(testUser, saveChangesAsyncReturns: 0));
             var expected = sut.BadRequest();
 
             // Act
@@ -117,11 +120,11 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
         }
 
         [Test]
-        [Ignore("TODO")]
         public async Task LogoutSuccessful_ReturnsOk()
         {
             // Arrange
-            var sut = CreateSut(contextFactory: mf.DbContextFactory().WithUsers(testUser).WithSaveChangesAsyncReturns(1));
+            var sut = CreateSut(contextFactory: mf.DbContextFactory()
+                .WithUsers(testUser, saveChangesAsyncReturns: 1));
             var expected = sut.Ok();
 
             // Act

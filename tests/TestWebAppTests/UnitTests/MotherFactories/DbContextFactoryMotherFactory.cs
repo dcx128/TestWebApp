@@ -26,27 +26,10 @@ namespace TestWebAppTests.UnitTests.MotherFactories
             return dbContextFactoryMock.Object;
         }
 
-        public static IDbContextFactory<AppDbContext> WithSaveChangesAsyncReturns(
-            this IDbContextFactory<AppDbContext> dbContextFactory,
-            int result)
+        public static IDbContextFactory<AppDbContext> WithNoUsers(
+            this IDbContextFactory<AppDbContext> dbContextFactory)
         {
-            /*var dbContextFactoryMock = Mock.Get(dbContextFactory);
-
-            dbContextFactoryMock
-                .Setup(m => m.CreateDbContext())
-                .Returns(() => new Mock<AppDbContext>().Object);*/
-
-            using (var context = dbContextFactory.CreateDbContextAsync(It.IsAny<CancellationToken>()).GetAwaiter().GetResult())
-            {
-                var appDbContextMock = Mock.Get(context);
-                appDbContextMock
-                    .Setup(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(result);
-
-                context.SaveChanges();
-            }
-
-            return dbContextFactory;
+            return dbContextFactory.WithUsers([]);
         }
 
         public static IDbContextFactory<AppDbContext> WithThrowIfCancellationRequested(
@@ -64,27 +47,33 @@ namespace TestWebAppTests.UnitTests.MotherFactories
 
         public static IDbContextFactory<AppDbContext> WithUsers(
             this IDbContextFactory<AppDbContext> dbContextFactory,
-            IEnumerable<User> users)
+            IEnumerable<User> users,
+            int? saveChangesAsyncReturns = default)
         {
             var dbContextFactoryMock = Mock.Get(dbContextFactory);
 
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase("InMemoryDB")
-                .Options;
-
-            using (var context = new AppDbContext(options))
-            {
-                foreach (var user in users)
-                {
-                    context.Users.Add(user);
-                }
-
-                context.SaveChanges();
-            }
-
             dbContextFactoryMock
                 .Setup(m => m.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new AppDbContext(options));
+                .ReturnsAsync(() =>
+                {
+                    var memdb = new DbContextOptionsBuilder<AppDbContext>()
+                        .UseInMemoryDatabase(databaseName: "InMemoryDB");
+
+                    if (saveChangesAsyncReturns.HasValue)
+                    {
+                        memdb = memdb.AddInterceptors(new CustomSaveChangesInterceptor(saveChangesAsyncReturns.Value));
+                    }
+
+                    var options = memdb.Options;
+                    if (users.Any())
+                    {
+                        using var context = new AppDbContext(options);
+                        context.Users.AddRange(users);
+                        context.SaveChanges();
+                    }
+
+                    return new AppDbContext(options);
+                });
 
             return dbContextFactoryMock.Object;
         }

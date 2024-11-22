@@ -30,6 +30,7 @@ namespace TestWebApp
                 });
 
                 services.AddSingleton<IHashService, HashService>();
+                services.AddSingleton<IHashGenerator, HashGenerator>();
                 services.AddSingleton<ILdapService, LdapService>();
 
                 services.AddDbContextFactory<AppDbContext>(lifetime: ServiceLifetime.Singleton, optionsAction: (provider, optionsBuilder) =>
