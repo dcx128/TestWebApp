@@ -12,17 +12,22 @@ namespace TestWebAppTests.UnitTests.Api.V0.UserServiceTests
     {
         protected const string testUserName = nameof(testUserName);
         protected const string testUserPass = nameof(testUserPass);
+        protected const string testUserPassHash = nameof(testUserPassHash);
         protected const string testSession = nameof(testSession);
 
         protected readonly TimeSpan callTimeout = TimeSpan.FromMicroseconds(250);
         protected readonly IEnumerable<User> testUser =
-            [new User { UserName = testUserName, PassHash = testUserPass, Session = testSession }];
+            [new User { UserName = testUserName, PassHash = testUserPassHash, Session = testSession }];
 
         protected UserService CreateSut(
             IDbContextFactory<AppDbContext>? contextFactory = null,
+            IHashGenerator? hashGenerator = null,
             ILdapService? ldapService = null)
         {
-            return mf.UserService(contextFactory: contextFactory, ldapService: ldapService);
+            return mf.UserService(
+                contextFactory: contextFactory,
+                hashGenerator: hashGenerator,
+                ldapService: ldapService);
         }
 
         [SetUp]

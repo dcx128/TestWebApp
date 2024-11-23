@@ -81,7 +81,7 @@ namespace TestWebApp.Api.V0
             if (string.IsNullOrWhiteSpace(userName) ||
                 string.IsNullOrWhiteSpace(password))
             {
-                return BadRequest(response.ToJson());
+                return Forbid();
             }
 
             try
@@ -111,7 +111,7 @@ namespace TestWebApp.Api.V0
             }
             catch (OperationCanceledException)
             {
-                return NoContent();
+                return Forbid();
             }
             catch (Exception ex)
             {
@@ -131,7 +131,7 @@ namespace TestWebApp.Api.V0
             if (string.IsNullOrWhiteSpace(userName) ||
                 string.IsNullOrWhiteSpace(session))
             {
-                return Forbid(response.ToJson());
+                return Forbid();
             }
 
             try

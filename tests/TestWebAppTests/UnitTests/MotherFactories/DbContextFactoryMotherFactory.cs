@@ -61,7 +61,8 @@ namespace TestWebAppTests.UnitTests.MotherFactories
 
                     if (saveChangesAsyncReturns.HasValue)
                     {
-                        memdb = memdb.AddInterceptors(new CustomSaveChangesInterceptor(saveChangesAsyncReturns.Value));
+                        memdb = memdb.AddInterceptors(new CustomSaveChangesInterceptor(
+                            forcedSavedChangesAsyncResult: saveChangesAsyncReturns.Value));
                     }
 
                     var options = memdb.Options;
