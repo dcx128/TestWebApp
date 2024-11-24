@@ -24,5 +24,18 @@ namespace TestWebAppTests.UnitTests.MotherFactories
 
             return hashGeneratorMock.Object;
         }
+
+        public static IHashGenerator WithSession(
+            this IHashGenerator hashGenerator,
+            string passHash, string session)
+        {
+            var hashGeneratorMock = Mock.Get(hashGenerator);
+
+            hashGeneratorMock
+                .Setup(m => m.GenerateSession(passHash))
+                .Returns(session);
+
+            return hashGeneratorMock.Object;
+        }
     }
 }
