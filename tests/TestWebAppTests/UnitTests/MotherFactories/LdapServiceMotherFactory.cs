@@ -29,7 +29,7 @@ namespace TestWebAppTests.UnitTests.MotherFactories
 
             ldapServiceMock
                 .Setup(m => m.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(loginResult));
+                .ReturnsAsync(loginResult);
 
             return ldapServiceMock.Object;
         }
