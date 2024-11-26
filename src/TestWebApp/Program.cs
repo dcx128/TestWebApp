@@ -2,33 +2,21 @@ namespace TestWebApp
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            using var app = WebApplication
+                .CreateBuilder(args)
+                .ConfigureServices() // Add services to the container
+                .Build();
 
-            // Add services to the container.
-            builder.Configure();
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
+            app
+                .If(app.Environment.IsDevelopment(), then => then.UseSwagger().UseSwaggerUI()) // Configure the HTTP request pipeline
+                .UseHttpsRedirection()
+                .UseAuthorization();
 
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }

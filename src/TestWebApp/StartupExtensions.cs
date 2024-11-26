@@ -10,7 +10,7 @@ namespace TestWebApp
 {
     public static class StartupExtensions
     {
-        public static WebApplicationBuilder Configure(this WebApplicationBuilder builder)
+        public static WebApplicationBuilder ConfigureServices(this WebApplicationBuilder builder)
         {
             builder.Configuration
                 .SetBasePath(Directory.GetParent(Assembly.GetExecutingAssembly().Location)!.FullName)
@@ -40,7 +40,22 @@ namespace TestWebApp
                 });
             });
 
+            builder.Services
+                .AddEndpointsApiExplorer() // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+                .AddSwaggerGen()
+                .AddControllers();
+
             return builder;
+        }
+
+        public static T If<T>(this T obj, bool condition, Action<T> then)
+        {
+            if (condition)
+            {
+                then(obj);
+            }
+
+            return obj;
         }
     }
 }
