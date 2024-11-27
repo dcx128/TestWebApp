@@ -10,11 +10,13 @@ namespace TestWebApp
 {
     public static class StartupExtensions
     {
-        public static WebApplicationBuilder ConfigureServices(this WebApplicationBuilder builder)
+        public static WebApplicationBuilder ConfigureServices(this WebApplicationBuilder builder, params string[] args)
         {
             builder.Configuration
-                .SetBasePath(Directory.GetParent(Assembly.GetExecutingAssembly().Location)!.FullName)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                .SetBasePath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddCommandLine(args)
+                .AddEnvironmentVariables();
 
             builder.Host.ConfigureServices((context, services) =>
             {
@@ -33,11 +35,14 @@ namespace TestWebApp
                 services.AddSingleton<IHashGenerator, HashGenerator>();
                 services.AddSingleton<ILdapService, LdapService>();
 
-                services.AddDbContextFactory<AppDbContext>(lifetime: ServiceLifetime.Singleton, optionsAction: (provider, optionsBuilder) =>
-                {
-                    var dataSourceBuilder = new NpgsqlDataSourceBuilder(provider.GetRequiredService<IProductSettings>().DbConnectionString);
-                    optionsBuilder.UseNpgsql(dataSourceBuilder.Build());
-                });
+                services.AddDbContextFactory<AppDbContext>(
+                    lifetime: ServiceLifetime.Singleton,
+                    optionsAction: (provider, optionsBuilder) =>
+                    {
+                        var productSettings = provider.GetRequiredService<IProductSettings>();
+                        var dataSourceBuilder = new NpgsqlDataSourceBuilder(productSettings.DbConnectionString);
+                        optionsBuilder.UseNpgsql(dataSourceBuilder.Build());
+                    });
             });
 
             builder.Services

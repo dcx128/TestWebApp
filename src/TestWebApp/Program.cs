@@ -6,17 +6,26 @@ namespace TestWebApp
         {
             using var app = WebApplication
                 .CreateBuilder(args)
-                .ConfigureServices() // Add services to the container
+                .ConfigureServices(args) // Add services to the container
                 .Build();
 
-            app
-                .If(app.Environment.IsDevelopment(), then => then.UseSwagger().UseSwaggerUI()) // Configure the HTTP request pipeline
-                .UseHttpsRedirection()
-                .UseAuthorization();
+            try
+            {
+                app
+                    .If(app.Environment.IsDevelopment(), then => then.UseSwagger().UseSwaggerUI()) // Configure the HTTP request pipeline
+                    .UseHttpsRedirection()
+                    .UseAuthorization();
 
-            app.MapControllers();
-
-            await app.RunAsync();
+                app.MapControllers();
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogError($"Fatal error: '{ex.Message}'");
+            }
+            finally
+            {
+                await app.RunAsync();
+            }
         }
     }
 }
